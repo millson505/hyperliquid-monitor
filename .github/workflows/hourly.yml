@@ -1,3 +1,5 @@
+name: Hourly
+
 import os
 import requests
 
