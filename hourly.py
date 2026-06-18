@@ -1,6 +1,6 @@
 import os
 import requests
-
+for asset in universe: print(asset["name"])
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
