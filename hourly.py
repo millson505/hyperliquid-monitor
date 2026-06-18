@@ -4,22 +4,50 @@ import requests
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-message = """
-📈 Funding Monitor
+r = requests.post(
+    "https://api.hyperliquid.xyz/info",
+    json={"type": "metaAndAssetCtxs"}
+)
 
-HYPE
-Funding: 테스트
+data = r.json()
 
-HYNIX
-Funding: 테스트
-"""
+universe = data[0]["universe"]
+ctxs = data[1]
+
+WATCHLIST = ["HYPE", "HYNIX"]
+
+msg = "📈 Funding Monitor\n\n"
+
+for coin in WATCHLIST:
+    found = False
+
+    for i, asset in enumerate(universe):
+        if asset["name"] == coin:
+            ctx = ctxs[i]
+
+            funding = float(ctx["funding"]) * 100
+            oi = ctx["openInterest"]
+
+            msg += (
+                f"{coin}\n"
+                f"Funding: {funding:.4f}%\n"
+                f"OI: {oi}\n\n"
+            )
+
+            found = True
+            break
+
+    if not found:
+        msg += f"{coin}\nNot Found\n\n"
 
 url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-requests.post(
+resp = requests.post(
     url,
     json={
         "chat_id": CHAT_ID,
-        "text": message
+        "text": msg
     }
 )
+
+print(resp.text)
