@@ -1,55 +1,25 @@
 name: Hourly
 
-import os
-import requests
+on:
+  workflow_dispatch:
 
-BOT_TOKEN = os.environ["BOT_TOKEN"]
-CHAT_ID = os.environ["CHAT_ID"]
+  schedule:
+    - cron: '0 * * * *'
 
-r = requests.post(
-    "https://api.hyperliquid.xyz/info",
-    json={"type": "metaAndAssetCtxs"}
-)
+jobs:
+  run:
+    runs-on: ubuntu-latest
 
-data = r.json()
+    steps:
+      - uses: actions/checkout@v4
 
-universe = data[0]["universe"]
-ctxs = data[1]
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-WATCHLIST = ["HYPE", "HYNIX"]
+      - run: pip install -r requirements.txt
 
-msg = "📈 Funding Monitor\n\n"
-
-for coin in WATCHLIST:
-    found = False
-
-    for i, asset in enumerate(universe):
-        if asset["name"] == coin:
-            ctx = ctxs[i]
-
-            funding = float(ctx["funding"]) * 100
-            oi = ctx["openInterest"]
-
-            msg += (
-                f"{coin}\n"
-                f"Funding: {funding:.4f}%\n"
-                f"OI: {oi}\n\n"
-            )
-
-            found = True
-            break
-
-    if not found:
-        msg += f"{coin}\nNot Found\n\n"
-
-url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-resp = requests.post(
-    url,
-    json={
-        "chat_id": CHAT_ID,
-        "text": msg
-    }
-)
-
-print(resp.text)
+      - run: python hourly.py
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
