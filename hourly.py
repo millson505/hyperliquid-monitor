@@ -4,6 +4,10 @@ import requests
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
+# ======================
+# HYPERLIQUID
+# ======================
+
 r = requests.post(
     "https://api.hyperliquid.xyz/info",
     json={"type": "metaAndAssetCtxs"},
@@ -15,14 +19,34 @@ data = r.json()
 universe = data[0]["universe"]
 ctxs = data[1]
 
-funding = 0
+hl_funding = 0
 oi = 0
 
 for i, asset in enumerate(universe):
     if asset["name"] == "HYPE":
-        funding = float(ctxs[i]["funding"]) * 100
+        hl_funding = float(ctxs[i]["funding"]) * 100
         oi = float(ctxs[i]["openInterest"])
         break
+
+# ======================
+# BACKPACK
+# ======================
+
+bp = requests.get(
+    "https://api.backpack.exchange/api/v1/markPrices",
+    timeout=30
+).json()
+
+bp_funding = None
+
+for item in bp:
+    if item["symbol"] == "HYPE_USDC_PERP":
+        bp_funding = float(item["fundingRate"]) * 100
+        break
+
+# ======================
+# FORMAT
+# ======================
 
 if oi >= 1_000_000_000:
     oi_text = f"{oi/1_000_000_000:.2f}B"
@@ -33,8 +57,11 @@ else:
 
 msg = f"""📈 HYPE Monitor
 
-Funding (8h)
-{funding:.4f}%
+HL Funding (1h)
+{hl_funding:.4f}%
+
+Backpack Funding (1h)
+{bp_funding:.4f}%
 
 OI
 {oi_text}
@@ -51,14 +78,16 @@ requests.post(
     timeout=30
 )
 
-# Funding Alert
+# ======================
+# FUNDING ALERT
+# ======================
 
-if abs(funding) >= 0.05:
+if abs(hl_funding) >= 0.05:
 
     alert = f"""🚨 HYPE Funding Alert
 
-Funding (8h)
-{funding:.4f}%
+HL Funding
+{hl_funding:.4f}%
 """
 
     requests.post(
