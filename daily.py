@@ -4,6 +4,10 @@ import requests
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
+# =========================
+# ETF DATA (SoSoValue)
+# =========================
+
 ETF_URL = "https://sosovalue.com/_next/data/KWchX1um_BW_mW00I76Pl/assets/etf/us-hype-spot.json"
 
 r = requests.get(ETF_URL, timeout=30)
@@ -25,7 +29,21 @@ flow_1d_m = flow_1d / 1_000_000
 flow_7d_m = flow_7d / 1_000_000
 aum_m = aum / 1_000_000
 
-# Hyperliquid
+# =========================
+# DEFI LLAMA REVENUE
+# =========================
+
+REV_URL = "https://defillama.com/api/public/protocols/charts?kind=adapter&adapterType=fees&protocol=Hyperliquid"
+
+rev = requests.get(REV_URL, timeout=30).json()
+
+latest_rev = rev[-1][1]
+revenue_m = latest_rev / 1_000_000
+
+# =========================
+# HYPERLIQUID DATA
+# =========================
+
 r = requests.post(
     "https://api.hyperliquid.xyz/info",
     json={"type": "metaAndAssetCtxs"},
@@ -53,12 +71,19 @@ elif oi >= 1_000_000:
 else:
     oi_text = f"{oi:,.0f}"
 
+# =========================
+# MESSAGE
+# =========================
+
 msg = f"""📊 Hyperliquid Daily
 
-HYPE Funding
+Revenue (24h)
+${revenue_m:.2f}M
+
+Funding (8h)
 {funding:.4f}%
 
-HYPE OI
+OI
 {oi_text}
 
 ETF Flow (1D)
