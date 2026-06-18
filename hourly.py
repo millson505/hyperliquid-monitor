@@ -14,31 +14,44 @@ data = r.json()
 universe = data[0]["universe"]
 ctxs = data[1]
 
-WATCHLIST = ["HYPE", "HYNIX"]
+# 보고 싶은 종목
+WATCHLIST = {
+    "HYPE": "HYPE",
+    "SKHX": "xyz:SKHXUSD"
+}
 
 msg = "📈 Funding Monitor\n\n"
 
-for coin in WATCHLIST:
+for display_name, symbol in WATCHLIST.items():
     found = False
 
     for i, asset in enumerate(universe):
-        if asset["name"] == coin:
+        if asset["name"] == symbol:
             ctx = ctxs[i]
 
             funding = float(ctx["funding"]) * 100
-            oi = ctx["openInterest"]
+            oi = float(ctx["openInterest"])
+
+            if oi >= 1_000_000_000:
+                oi_text = f"{oi/1_000_000_000:.2f}B"
+            elif oi >= 1_000_000:
+                oi_text = f"{oi/1_000_000:.2f}M"
+            elif oi >= 1_000:
+                oi_text = f"{oi/1_000:.2f}K"
+            else:
+                oi_text = f"{oi:.0f}"
 
             msg += (
-                f"{coin}\n"
+                f"{display_name}\n"
                 f"Funding: {funding:.4f}%\n"
-                f"OI: {oi}\n\n"
+                f"OI: {oi_text}\n\n"
             )
 
             found = True
             break
 
     if not found:
-        msg += f"{coin}\nNot Found\n\n"
+        msg += f"{display_name}\nNot Found\n\n"
 
 url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
