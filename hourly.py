@@ -1,9 +1,10 @@
 import os
 import requests
-for asset in universe: print(asset["name"])
+
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
+# Hyperliquid API 호출
 r = requests.post(
     "https://api.hyperliquid.xyz/info",
     json={"type": "metaAndAssetCtxs"}
@@ -14,10 +15,9 @@ data = r.json()
 universe = data[0]["universe"]
 ctxs = data[1]
 
-# 보고 싶은 종목
 WATCHLIST = {
     "HYPE": "HYPE",
-    "SKHX": "xyz:SKHXUSD"
+    "SKHYNIX": "xyz:SKHYNIX"
 }
 
 msg = "📈 Funding Monitor\n\n"
@@ -26,11 +26,15 @@ for display_name, symbol in WATCHLIST.items():
     found = False
 
     for i, asset in enumerate(universe):
-        if asset["name"] == symbol:
+
+        asset_name = asset.get("name", "")
+
+        if asset_name == symbol:
+
             ctx = ctxs[i]
 
-            funding = float(ctx["funding"]) * 100
-            oi = float(ctx["openInterest"])
+            funding = float(ctx.get("funding", 0)) * 100
+            oi = float(ctx.get("openInterest", 0))
 
             if oi >= 1_000_000_000:
                 oi_text = f"{oi/1_000_000_000:.2f}B"
