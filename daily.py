@@ -1,5 +1,6 @@
 import os
 import requests
+from datetime import datetime
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
@@ -71,16 +72,19 @@ elif oi >= 1_000_000:
 else:
     oi_text = f"{oi:,.0f}"
 
+today = datetime.utcnow().strftime("%Y-%m-%d")
+
 # =========================
 # MESSAGE
 # =========================
 
 msg = f"""📊 Hyperliquid Daily
+{today}
 
 Revenue (24h)
 ${revenue_m:.2f}M
 
-Funding (8h)
+Funding (1h)
 {funding:.4f}%
 
 OI
